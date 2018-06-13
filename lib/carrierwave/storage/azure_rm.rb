@@ -69,7 +69,7 @@ module CarrierWave
           # Commit block blobs
           @connection.commit_blob_blocks @uploader.azure_container, @path, blocks,
                                          {content_type: @content_type}.
-                                             merge(uploader.send(:azure_storage_blob_options))
+                                             merge(@uploader.send(:azure_storage_blob_options))
 
           true
         end
