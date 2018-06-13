@@ -39,7 +39,7 @@ module CarrierWave
         end
 
         def ensure_container_exists(name)
-          unless @connection.list_containers.any? { |c| c.name == name }
+          unless @connection.list_containers.any? {|c| c.name == name}
             @connection.create_container(name, access_level_option)
           end
         end
@@ -55,8 +55,8 @@ module CarrierWave
         def store!(file)
           ensure_container_exists(@uploader.send("azure_container"))
           @content_type = file.content_type
-          file_to_send  = ::File.open(file.file, 'rb')
-          blocks        = []
+          file_to_send = ::File.open(file.file, 'rb')
+          blocks = []
 
           until file_to_send.eof?
             block_id = Base64.urlsafe_encode64(SecureRandom.uuid)
@@ -67,7 +67,9 @@ module CarrierWave
           end
 
           # Commit block blobs
-          @connection.commit_blob_blocks @uploader.azure_container, @path, blocks, content_type: @content_type
+          @connection.commit_blob_blocks @uploader.azure_container, @path, blocks,
+                                         {content_type: @content_type}.
+                                             merge(uploader.send(:azure_storage_blob_options))
 
           true
         end
@@ -79,10 +81,10 @@ module CarrierWave
           else
             uri = @connection.generate_uri(path)
             if sign_url?(options)
-              @signer.signed_uri(uri, false, { permissions: 'r',
-                                               resource: 'b',
-                                               start: 1.minute.ago.utc.iso8601,
-                                               expiry: expires_at}).to_s
+              @signer.signed_uri(uri, false, {permissions: 'r',
+                                              resource: 'b',
+                                              start: 1.minute.ago.utc.iso8601,
+                                              expiry: expires_at}).to_s
             else
               uri.to_s
             end
@@ -132,7 +134,7 @@ module CarrierWave
         def access_level_option
           lvl = @uploader.public_access_level
           raise "Invalid Access level #{lvl}." unless %w(private blob container).include? lvl
-          lvl == 'private' ? {} : { :public_access_level => lvl }
+          lvl == 'private' ? {} : {:public_access_level => lvl}
         end
 
         def expires_at
